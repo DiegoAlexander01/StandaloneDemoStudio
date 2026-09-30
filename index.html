@@ -267,11 +267,13 @@ h1{font-size:1.3em; margin:0 0 4px; font-weight:600;}
   .format-row{flex-wrap:wrap; justify-content:center; gap:8px;}
   .format-row .fmt{flex:0 1 calc(33.333% - 6px); min-width:0; padding:9px 4px;}
 
-  /* Piezas/wa-frame a ~5/8 de su tamaño de escritorio (mismas proporciones
-     por formato, solo escaladas) — la más ancha (16:9, 480px de escritorio)
-     queda en 300px, con margen real hasta en un Android angosto de 360px.
-     Tipografía y paddings internos escalados con más margen (no tan
-     agresivo como las cajas) para que el texto se siga leyendo bien. */
+  /* Piezas/wa-frame a ~5/8 (0.625) de su tamaño de escritorio — MISMO factor
+     para cajas Y tipografía/paddings (antes la letra usaba una escala más
+     suave que la caja, lo que la hacía ver desproporcionadamente grande en
+     celular comparada con la versión de escritorio; ver memory.md §25/§26
+     del standalone). Los tamaños de título por formato (antes aplanados a
+     un solo valor) vuelven a ser distintos por formato, igual que en
+     escritorio, solo escalados. */
   #piezaViva .piece-1x1{width:212px; height:212px;}
   #piezaViva .piece-9x16{width:155px; height:276px;}
   #piezaViva .piece-wa{width:156px; height:219px;}
@@ -280,24 +282,28 @@ h1{font-size:1.3em; margin:0 0 4px; font-weight:600;}
   #piezaViva .piece-3x4{width:210px; height:280px;}
 
   #piezaViva .piece-content{padding:14px;}
-  #piezaViva .piece-logo .mark{width:12px; height:12px;}
-  #piezaViva .piece-logo .wm{font-size:9px;}
-  #piezaViva .piece-tag{font-size:7.5px; padding:4px 7px; margin-bottom:7px;}
-  #piezaViva .piece-head{font-size:18px !important;}
-  #piezaViva .piece-1x1 .piece-head, #piezaViva .piece-4x5 .piece-head{font-size:20px !important;}
-  #piezaViva .piece-sub{font-size:9.5px; margin-top:5px;}
-  #piezaViva .piece-cta{margin-top:9px; font-size:8.5px; padding:6px 14px;}
+  #piezaViva .piece-logo .mark{width:11px; height:11px;}
+  #piezaViva .piece-logo .wm{font-size:8px;}
+  #piezaViva .piece-tag{font-size:6px; padding:3px 7px; margin-bottom:7px;}
+  #piezaViva .piece-1x1 .piece-head{font-size:19px;}
+  #piezaViva .piece-9x16 .piece-head{font-size:16px;}
+  #piezaViva .piece-wa .piece-head{font-size:14px;}
+  #piezaViva .piece-16x9 .piece-head{font-size:14px;}
+  #piezaViva .piece-4x5 .piece-head{font-size:18px;}
+  #piezaViva .piece-3x4 .piece-head{font-size:17px;}
+  #piezaViva .piece-sub{font-size:8px; margin-top:6px;}
+  #piezaViva .piece-cta{margin-top:9px; font-size:7px; padding:6px 14px;}
 
   #piezaViva .wa-frame{width:188px; padding:6px 5px 5px;}
   #piezaViva .wa-top{padding:3px 5px 6px; gap:6px;}
   #piezaViva .wa-top .wa-ph{width:19px; height:19px;}
-  #piezaViva .wa-top .wa-ph svg{width:10px; height:10px;}
-  #piezaViva .wa-top b{font-size:9px;}
-  #piezaViva .wa-top small{font-size:7.5px;}
+  #piezaViva .wa-top .wa-ph svg{width:9px; height:9px;}
+  #piezaViva .wa-top b{font-size:8px;}
+  #piezaViva .wa-top small{font-size:7px;}
   #piezaViva .wa-body{padding:5px 4px;}
   #piezaViva .wa-bubble{padding:4px;}
-  #piezaViva .wa-caption{font-size:9.5px; padding:5px 4px 2px;}
-  #piezaViva .wa-time{font-size:6.5px; padding:1px 4px 1px;}
+  #piezaViva .wa-caption{font-size:8px; padding:4px 4px 2px;}
+  #piezaViva .wa-time{font-size:6px; padding:1px 4px 1px;}
 }
 </style>
 </head>
