@@ -73,7 +73,7 @@ def subir_archivo(ruta_local, ruta_en_bucket):
         contenido = f.read()
     resp = requests.post(
         "%s/storage/v1/object/piezas/%s" % (SUPABASE_URL, ruta_en_bucket),
-        headers={**HEADERS_STORAGE, "Content-Type": "image/png", "x-upsert": "true"},
+        headers={**HEADERS_STORAGE, "Content-Type": "image/jpeg", "x-upsert": "true"},
         data=contenido,
         timeout=60,
     )
@@ -87,12 +87,12 @@ def main():
     print("filas leídas del CSV local:", len(filas))
     assert len(filas) == 192, "se esperaban 192 filas (96 + 96 duplicadas), hay %d" % len(filas)
 
-    # --- 1. Subir las 96 imágenes únicas ----------------------------------
+    # --- 1. Subir las 96 imágenes únicas (JPG q90, ver memory.md §24) ------
     print("\n== Subiendo imágenes (solo ids 1-%d, únicas) ==" % TOTAL_UNICAS)
     for id_ in range(1, TOTAL_UNICAS + 1):
-        subir_archivo(os.path.join(RUTA_COMPOSICIONES, "%s.png" % id_), "composiciones/%s.png" % id_)
-        subir_archivo(os.path.join(RUTA_FOTOS, "4x5", "%s.png" % id_), "4x5/%s.png" % id_)
-        subir_archivo(os.path.join(RUTA_FOTOS, "16x9", "%s.png" % id_), "16x9/%s.png" % id_)
+        subir_archivo(os.path.join(RUTA_COMPOSICIONES, "%s.jpg" % id_), "composiciones/%s.jpg" % id_)
+        subir_archivo(os.path.join(RUTA_FOTOS, "4x5", "%s.jpg" % id_), "4x5/%s.jpg" % id_)
+        subir_archivo(os.path.join(RUTA_FOTOS, "16x9", "%s.jpg" % id_), "16x9/%s.jpg" % id_)
         print("  id=%d OK" % id_, end="\r")
     print("\n96 x 3 imágenes subidas.")
 
@@ -134,9 +134,9 @@ def main():
             "calificacion_texto": int(fila["calificacion_texto"]) if (fila.get("calificacion_texto") or "").strip() else None,
             "calificacion_imagen": int(fila["calificacion_imagen"]) if (fila.get("calificacion_imagen") or "").strip() else None,
             "pieza": pieza_jsonb,
-            "composicion_url": url_publica_storage("composiciones/%s.png" % id_original),
-            "foto_4x5_url": url_publica_storage("4x5/%s.png" % id_original),
-            "foto_16x9_url": url_publica_storage("16x9/%s.png" % id_original),
+            "composicion_url": url_publica_storage("composiciones/%s.jpg" % id_original),
+            "foto_4x5_url": url_publica_storage("4x5/%s.jpg" % id_original),
+            "foto_16x9_url": url_publica_storage("16x9/%s.jpg" % id_original),
         })
 
     resp = requests.post(

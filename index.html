@@ -107,8 +107,9 @@ h1{font-size:1.3em; margin:0 0 4px; font-weight:600;}
 }
 #imgOriginal{
   max-width:340px; width:100%; border-radius:14px; box-shadow:0 18px 50px rgba(132, 132, 132, 0.4);
-  display:block; flex-shrink:1;
+  display:block; flex-shrink:1; transition:opacity .15s ease;
 }
+#imgOriginal.cargando{opacity:0;}
 #piezaViva{flex-shrink:0; border-radius:14px; margin:0px 30px 0px; box-shadow:0 18px 50px rgba(132, 132, 132, 0.4);}
 #resultado.calificado #columnaImagen{width:auto; max-width:none;}
 #resultado.calificado #imgOriginal{display:none;}
@@ -225,11 +226,71 @@ h1{font-size:1.3em; margin:0 0 4px; font-weight:600;}
 .linea-costo small b{color:#fff; font-weight:700;}
 
 @media (max-width:860px){
-  #resultado{flex-direction:column; align-items:center;}
-  #columnaImagen{flex-direction:column; align-items:center; max-width:440px;}
-  .card{max-width:440px;}
-  #columnaCostos{width:100%; max-width:440px; margin-left:0;}
-  #resultado.calificado #columnaCostos{margin-left:0; margin-top:22px;}
+  /* El `<dialog>` nativo se autoajusta a su contenido por defecto
+     (`width:fit-content` de la hoja de estilos del navegador) — con
+     contenido que tiene anchos en píxeles fijos (piezas, botones de
+     formato), eso deja que el diálogo entero termine más ancho que la
+     pantalla del celular sin que ninguna regla de acá abajo lo evite. Se
+     fuerza un ancho explícito, relativo al viewport, para cortar ese
+     problema de raíz (ver memory.md §25 del standalone). */
+  #modalPieza{width:min(94vw, 420px);}
+
+  #resultado{flex-direction:column; align-items:center; order:0; padding:8px 14px 40px;}
+  #columnaImagen{flex-direction:column; align-items:center; max-width:100%;}
+  .card{max-width:100%;}
+  #columnaCostos{width:100%; max-width:100%; margin-left:0;}
+  #resultado.calificado #columnaCostos{margin-left:0; order:-1;}
+  #resultado.calificado #columnaImagen{margin-top:22px;}
+
+  /* Reordena el popup SOLO en celular (ver memory.md §25) — el estilo de
+     escritorio no se toca (sigue sin `order` ni flex-column acá fuera de
+     este media query). Mientras se está calificando: selector de formato
+     arriba de todo, luego imagen+composición, form al final. Ya calificado
+     (mostrando resultados): panel de costos arriba, composición después,
+     selector de formato al final (igual que en escritorio). */
+  #modalPieza[open]{display:flex; flex-direction:column;}
+  #cerrarModal{align-self:flex-end; order:-2;}
+  #resultado:not(.calificado) ~ #formatsPopup{order:-1; margin:0 auto; padding:16px 14px 4px;}
+  #resultado.calificado ~ #formatsPopup{order:1; padding:0 14px 24px;}
+
+  /* Los 6 botones de formato en una sola fila sin wrap forzaban por sí
+     solos buena parte del desborde de arriba — cada uno se resiste a
+     achicarse por debajo de su propio contenido (`min-width:auto` es el
+     default de un flex item) si no se le dice explícitamente que puede. */
+  .format-row{flex-wrap:wrap; justify-content:center; gap:8px;}
+  .format-row .fmt{flex:0 1 calc(33.333% - 6px); min-width:0; padding:9px 4px;}
+
+  /* Piezas/wa-frame a ~5/8 de su tamaño de escritorio (mismas proporciones
+     por formato, solo escaladas) — la más ancha (16:9, 480px de escritorio)
+     queda en 300px, con margen real hasta en un Android angosto de 360px.
+     Tipografía y paddings internos escalados con más margen (no tan
+     agresivo como las cajas) para que el texto se siga leyendo bien. */
+  #piezaViva .piece-1x1{width:212px; height:212px;}
+  #piezaViva .piece-9x16{width:155px; height:276px;}
+  #piezaViva .piece-wa{width:156px; height:219px;}
+  #piezaViva .piece-16x9{width:300px; height:169px;}
+  #piezaViva .piece-4x5{width:212px; height:266px;}
+  #piezaViva .piece-3x4{width:210px; height:280px;}
+
+  #piezaViva .piece-content{padding:14px;}
+  #piezaViva .piece-logo .mark{width:12px; height:12px;}
+  #piezaViva .piece-logo .wm{font-size:9px;}
+  #piezaViva .piece-tag{font-size:7.5px; padding:4px 7px; margin-bottom:7px;}
+  #piezaViva .piece-head{font-size:18px !important;}
+  #piezaViva .piece-1x1 .piece-head, #piezaViva .piece-4x5 .piece-head{font-size:20px !important;}
+  #piezaViva .piece-sub{font-size:9.5px; margin-top:5px;}
+  #piezaViva .piece-cta{margin-top:9px; font-size:8.5px; padding:6px 14px;}
+
+  #piezaViva .wa-frame{width:188px; padding:6px 5px 5px;}
+  #piezaViva .wa-top{padding:3px 5px 6px; gap:6px;}
+  #piezaViva .wa-top .wa-ph{width:19px; height:19px;}
+  #piezaViva .wa-top .wa-ph svg{width:10px; height:10px;}
+  #piezaViva .wa-top b{font-size:9px;}
+  #piezaViva .wa-top small{font-size:7.5px;}
+  #piezaViva .wa-body{padding:5px 4px;}
+  #piezaViva .wa-bubble{padding:4px;}
+  #piezaViva .wa-caption{font-size:9.5px; padding:5px 4px 2px;}
+  #piezaViva .wa-time{font-size:6.5px; padding:1px 4px 1px;}
 }
 </style>
 </head>
@@ -488,10 +549,37 @@ function cambiarFormatoConTransicion(fmt){
 
 // #imgOriginal (la foto sin componer, visible solo antes de calificar) sigue
 // al formato elegido: la 16:9 muestra su propia foto original; cualquier
-// otro formato muestra la 4:5 (la fuente real de la que se recorta).
+// otro formato muestra la 4:5 (la fuente real de la que se recorta). Es un
+// solo <img> reusado entre piezas y formatos, así que cambiar `.src` directo
+// deja la foto VIEJA pegada en pantalla hasta que la nueva termine de bajar
+// (comportamiento normal del navegador) — en vez de eso, se precarga fuera
+// del DOM (`new Image()`) y solo se asigna a `imgOriginal.src` cuando ya
+// terminó de cargar, con un fundido corto para que el cambio se sienta
+// intencional en vez de una imagen "trabada".
+let tokenImgOriginal = 0;
 function actualizarImgOriginal(){
   if (!PIEZA) return;
-  imgOriginal.src = formatoActual === '16x9' ? PIEZA.photoSrc16x9 : PIEZA.photoSrc4x5;
+  const src = formatoActual === '16x9' ? PIEZA.photoSrc16x9 : PIEZA.photoSrc4x5;
+  if (!src || imgOriginal.src === src) return;
+  const miToken = ++tokenImgOriginal;
+  imgOriginal.classList.add('cargando');
+  const previa = new Image();
+  previa.onload = previa.onerror = () => {
+    if (miToken !== tokenImgOriginal) return; // llegó tarde: ya se pidió otra foto/formato
+    imgOriginal.src = src;
+    imgOriginal.classList.remove('cargando');
+  };
+  previa.src = src;
+}
+
+// Precarga (fuera del DOM) ambas fotos reales de la pieza en cuanto se abre
+// el popup, para que el navegador ya las tenga en caché al cambiar de
+// formato o al calificar — reduce la espera real de red a una sola vez por
+// pieza en vez de una vez por cada cambio de formato.
+function precargarFotos(pieza){
+  [pieza.photoSrc4x5, pieza.photoSrc16x9].forEach(src => {
+    if (src) (new Image()).src = src;
+  });
 }
 
 formatsPopup.addEventListener('click', (e) => {
@@ -551,6 +639,7 @@ async function abrirPopup(id){
     photoSrc4x5: data.foto_4x5_url,
     photoSrc16x9: data.foto_16x9_url,
   });
+  precargarFotos(PIEZA);
   formatoActual = '1x1';
   actualizarImgOriginal();
   actualizarBotonesFormato();
