@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verne Studio · Yanbal · Calificación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#25283D; --purple:#6D4ABE; --lavender:#C0B0F4; --panel:#2E3150;
+  --verde:#2ecc71; --rojo:#e74c3c; --texto-opaco:rgba(177, 177, 177, 0.55);
+  --verne-dark-rgb:37,40,61;
+  --yb-orange:#F4791F; --yb-coral-deep:#E0473C; --yb-peach:#FBE3D6;
+  --yb-serif:'Playfair Display',Georgia,serif; --yb-sans:'Poppins',sans-serif;
+}
+*{box-sizing:border-box;}
+body{
+  font-family:'Poppins',-apple-system,sans-serif;
+  background:var(--ink); color:#fff; margin:0; padding:48px 20px 80px;
+  display:flex; flex-direction:column; align-items:center;
+}
+h1{font-size:1.3em; margin:0 0 4px; font-weight:600;}
+.sub{opacity:.55; font-size:.85em; margin-bottom:36px; text-align:center;}
+
+#inicio{display:flex; flex-direction:column; align-items:center; width:100%;}
+
+.format-row{display:flex; gap:10px;}
+.format-row .fmt{
+  flex:1; background:#1c1e33; border:1px solid #454870; color:#fff; border-radius:9px;
+  padding:10px 6px; cursor:pointer; font-family:inherit; font-size:.85em; text-align:center;
+}
+.format-row .fmt.active{background:var(--purple); border-color:var(--purple);}
+
+#filaBotonesSujetos{display:flex; gap:16px; flex-wrap:wrap; justify-content:center;}
+.btn-sujeto{
+  background:linear-gradient(135deg,var(--purple),#8a6fd6); color:#fff; border:none;
+  padding:16px 44px; font-size:1.05em; border-radius:999px; cursor:pointer;
+  font-family:inherit; font-weight:600; box-shadow:0 10px 30px rgba(109,74,190,.4);
+}
+.btn-sujeto:disabled{opacity:.5; cursor:default; box-shadow:none;}
+
+#estado{margin-top:18px; opacity:.7; font-size:.9em; min-height:1.2em;}
+
+.spinner{
+  display:none; width:44px; height:44px; margin:22px auto 0;
+  border-radius:50%; border:4px solid rgba(255,255,255,.15);
+  border-top-color:var(--purple); animation:girar .8s linear infinite;
+}
+@keyframes girar{ to{ transform:rotate(360deg); } }
+
+/* ---------------------------------------------------------------- galería */
+#galeria{
+  display:none; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+  gap:16px; width:100%; max-width:1120px;
+}
+.miniatura{
+  position:relative; border-radius:12px; overflow:hidden; cursor:pointer;
+  background:var(--panel); aspect-ratio:1/1; box-shadow:0 6px 18px rgba(0,0,0,.3);
+  transition:transform .15s ease;
+}
+.miniatura:hover{transform:scale(1.03);}
+.miniatura img{width:100%; height:100%; object-fit:cover; display:block;}
+.miniatura .check{
+  position:absolute; right:8px; bottom:8px; width:24px; height:24px; border-radius:50%;
+  background:var(--verde); color:#fff; font-size:.85em; font-weight:700;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+
+/* ---------------------------------------------------------------- popup (dialog nativo) */
+#modalPieza{
+  border:none; border-radius:16px; padding:0; background:var(--ink); color:#fff;
+  max-width:1300px; max-height:calc(90vh + 30px); overflow-y:auto;
+}
+#modalPieza{
+  opacity:0; transform:translateY(10px) scale(.97);
+  transition:opacity .11s ease, transform .11s ease, overlay .11s ease allow-discrete,
+             display .11s ease allow-discrete, height .2s ease;
+}
+#modalPieza[open]{opacity:1; transform:translateY(0) scale(1);}
+@starting-style{
+  #modalPieza[open]{opacity:0; transform:translateY(10px) scale(.97);}
+}
+#modalPieza::backdrop{
+  background:rgba(0,0,0,0);
+  transition:background .11s ease, overlay .11s ease allow-discrete, display .11s ease allow-discrete;
+}
+#modalPieza[open]::backdrop{background:rgba(0,0,0,.6);}
+@starting-style{
+  #modalPieza[open]::backdrop{background:rgba(0,0,0,0);}
+}
+#cerrarModal{
+  position:sticky; top:0; float:right; background:transparent; border:none; color:#fff;
+  font-size:1.4em; cursor:pointer; padding:14px 18px; opacity:.7; z-index:1;
+}
+#cerrarModal:hover{opacity:1;}
+
+#resultado{
+  display:flex; flex-direction:row; align-items:flex-start; justify-content:center;
+  width:100%; padding:8px 32px 57px; margin:0 auto;
+}
+#columnaImagen{
+  display:flex; flex-direction:row; align-items:center; justify-content: space-evenly;
+  flex-wrap:wrap; width:100%; max-width:1300px; flex-shrink:0;
+  transition:max-width .275s ease;
+}
+#imgOriginal{
+  max-width:340px; width:100%; border-radius:14px; box-shadow:0 18px 50px rgba(132, 132, 132, 0.4);
+  display:block; flex-shrink:1;
+}
+#piezaViva{flex-shrink:0; border-radius:14px; margin:0px 30px 0px; box-shadow:0 18px 50px rgba(132, 132, 132, 0.4);}
+#resultado.calificado #columnaImagen{width:auto; max-width:none;}
+#resultado.calificado #imgOriginal{display:none;}
+
+/* ===================== .piece/.wa-* — copiado literal del standalone local
+   (generar.html), sin reinterpretar. */
+#piezaViva .piece{
+  position:relative; overflow:hidden; border-radius:14px;
+  box-shadow:0 18px 50px rgba(var(--verne-dark-rgb),.22);
+  font-family:var(--yb-sans); color:#fff; background:var(--yb-peach);
+  transition:width .2s ease, height .2s ease;
+}
+#piezaViva .piece-1x1{width:340px; height:340px;}
+#piezaViva .piece-9x16{width:248px; height:441px;}
+#piezaViva .piece-wa{width:250px; height:350px;}
+#piezaViva .piece-16x9{width:480px; height:270px;}
+#piezaViva .piece-4x5{width:340px; height:425px;}
+#piezaViva .piece-3x4{width:336px; height:448px;}
+
+#piezaViva .piece-photo{position:absolute; inset:0; width:100%; height:100%;
+  background:linear-gradient(140deg,#FBE3D6 0%,#F4B79E 55%,#E98A6E 100%);}
+#piezaViva .piece-photo img.piece-img.img-broken{display:none;}
+#piezaViva .piece-photo svg{width:100%; height:100%; display:block;}
+#piezaViva .piece-photo img.piece-img{width:100%; height:100%; object-fit:cover; display:block;}
+
+#piezaViva .piece-shade{position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(43,38,34,0) 22%,rgba(43,38,34,.42) 52%,rgba(168,48,38,.93) 100%);}
+#piezaViva .piece-shade.shade-soft{background:linear-gradient(180deg,rgba(43,38,34,0) 30%,rgba(43,38,34,.30) 56%,rgba(168,48,38,.84) 100%);}
+#piezaViva .piece-shade.shade-strong{background:linear-gradient(180deg,rgba(43,38,34,0) 16%,rgba(43,38,34,.58) 46%,rgba(150,40,32,.97) 100%);}
+
+#piezaViva .piece-content{position:absolute; inset:0; display:flex; flex-direction:column; padding:22px;}
+#piezaViva .piece-logo{display:flex; align-items:center; gap:7px;}
+#piezaViva .piece-logo .mark{width:18px; height:18px;}
+#piezaViva .piece-logo .wm{font-weight:700; letter-spacing:.32em; font-size:13px; color:#fff;}
+#piezaViva .piece-bottom{margin-top:auto;}
+#piezaViva .piece-tag{display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:.16em;
+  text-transform:uppercase; background:rgba(43,38,34,.46); backdrop-filter:blur(4px);
+  padding:5px 11px; border-radius:999px; margin-bottom:11px;}
+#piezaViva .piece-head{font-family:var(--yb-serif); font-style:italic; font-weight:600; line-height:1.05;
+  letter-spacing:-.01em; text-shadow:0 2px 22px rgba(20,12,10,.55),0 1px 4px rgba(0,0,0,.3);}
+#piezaViva .piece-1x1 .piece-head{font-size:30px;}
+#piezaViva .piece-9x16 .piece-head{font-size:25px;}
+#piezaViva .piece-wa .piece-head{font-size:22px;}
+#piezaViva .piece-16x9 .piece-head{font-size:22px;}
+#piezaViva .piece-4x5 .piece-head{font-size:28px;}
+#piezaViva .piece-3x4 .piece-head{font-size:27px;}
+#piezaViva .piece-sub{font-size:12px; font-weight:500; opacity:.95; margin-top:9px; letter-spacing:.02em;}
+#piezaViva .piece-cta{display:inline-flex; align-items:center; justify-content:center; text-align:center;
+  margin-top:15px; background:#fff; color:var(--yb-coral-deep); font-weight:700; font-size:11.5px;
+  letter-spacing:.04em; padding:9px 22px; border-radius:999px;}
+
+#piezaViva .wa-frame{background:#0b141a; border-radius:18px; padding:10px 8px 8px; width:300px;
+  transition:width .2s ease, height .2s ease;}
+#piezaViva .wa-top{display:flex; align-items:center; gap:9px; padding:4px 8px 10px;}
+#piezaViva .wa-top .wa-ph{width:30px; height:30px; border-radius:50%; background:var(--yb-orange);
+  display:flex; align-items:center; justify-content:center;}
+#piezaViva .wa-top .wa-ph svg{width:15px; height:15px;}
+#piezaViva .wa-top b{color:#e9edef; font-size:13px; font-weight:600;}
+#piezaViva .wa-top small{color:#8696a0; font-size:10.5px; display:block;}
+#piezaViva .wa-body{background:#0b141a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 0h40v40H0z' fill='%230b141a'/%3E%3Ccircle cx='20' cy='20' r='1' fill='%23182229'/%3E%3C/svg%3E");
+  padding:8px 6px; border-radius:8px;}
+#piezaViva .wa-bubble{background:#005c4b; border-radius:10px 10px 10px 3px; padding:6px; max-width:96%;}
+#piezaViva .wa-bubble .piece{box-shadow:none; border-radius:8px;}
+#piezaViva .wa-caption{color:#e9edef; font-size:12px; line-height:1.45; padding:7px 6px 3px;}
+#piezaViva .wa-caption .wlink{color:#53bdeb;}
+#piezaViva .wa-time{font-size:9px; color:#8696a0; text-align:right; padding:2px 6px 2px;}
+
+#formatsPopup{
+  width:100%; max-width:1020px; margin:24px auto 0; padding:0 32px 24px;
+}
+#resultado.calificado + #formatsPopup{margin-top:6px;}
+
+.card{background:var(--panel); border-radius:14px; padding:22px; width:100%; max-width:325px; flex-shrink:0;
+  transition:opacity .1s ease;}
+.card.desvaneciendo{opacity:0;}
+.card label{display:block; margin-bottom:6px; font-size:.88em; opacity:.85;}
+.card input[type=number]{
+  width:100%; padding:11px 12px; border-radius:9px; border:1px solid #454870;
+  background:#1c1e33; color:#fff; font-family:inherit; font-size:.95em; margin-bottom:16px;
+}
+#btnCalificar{
+  background:var(--purple); color:#fff; border:none; padding:13px 28px; border-radius:999px;
+  cursor:pointer; font-weight:600; width:100%; font-family:inherit; font-size:.98em;
+}
+#btnCalificar:disabled{opacity:.5; cursor:default;}
+
+#columnaCostos{
+  width:0; max-width:0; opacity:0; overflow:hidden; flex-shrink:0; margin-left:0;
+  transition:width .275s ease, max-width .275s ease, margin-left .275s ease, opacity .225s ease;
+}
+#resultado.calificado #columnaCostos{
+  width:100%; max-width:400px; margin-left:56px;
+}
+#columnaCostos.contenido-listo{opacity:1;}
+#panelCostos{width:100%;}
+#panelCostos summary{
+  cursor:pointer; padding:18px 20px; background:var(--panel); border-radius:14px;
+  list-style:none; font-size:1em;
+}
+#panelCostos summary::-webkit-details-marker{display:none;}
+#panelCostos summary::marker{content:"";}
+.costo-grande{color:var(--verde); font-size:1.65em; font-weight:800; display:inline-block; margin-top:6px;}
+.comparacion-costo{
+  display:flex; flex-direction:column; gap:11px;
+  font-size:.72em; font-weight:400; color:var(--texto-opaco); margin-top:15px; line-height:1.5;
+}
+.comparacion-costo .rojo{color:var(--rojo);}
+.comparacion-costo .verde{color:var(--verde);}
+.comparacion-costo .blanco{color:#fff; font-weight:400;}
+.desglose{padding:18px 20px 4px;}
+.linea-costo{padding:14px 0; border-top:1px solid #3a3d5f;}
+.linea-costo b{font-weight:600; display:inline-block; margin-top:4px;}
+.linea-costo small{display:block; color:var(--texto-opaco); font-size:.8em; margin-top:3px;}
+.linea-costo small b{color:#fff; font-weight:700;}
+
+@media (max-width:860px){
+  #resultado{flex-direction:column; align-items:center;}
+  #columnaImagen{flex-direction:column; align-items:center; max-width:440px;}
+  .card{max-width:440px;}
+  #columnaCostos{width:100%; max-width:440px; margin-left:0;}
+  #resultado.calificado #columnaCostos{margin-left:0; margin-top:22px;}
+}
+</style>
+</head>
+<body>
+
+<h1>Verne Studio · Yanbal (Pruebas de Calidad)</h1>
+<div class="sub">Calificación de piezas ya generadas</div>
+
+<div id="inicio">
+  <div id="filaBotonesSujetos">
+    <button id="btnVictor" class="btn-sujeto">Calificar Imágenes - Victor</button>
+    <button id="btnJulio" class="btn-sujeto">Calificar Imágenes - Julio</button>
+  </div>
+</div>
+<div class="spinner" id="spinner"></div>
+<div id="estado"></div>
+
+<div id="galeria"></div>
+
+<dialog id="modalPieza">
+  <button id="cerrarModal" aria-label="Cerrar">×</button>
+  <div id="resultado">
+    <div id="columnaImagen">
+      <img id="imgOriginal" alt="Foto original">
+      <div id="piezaViva"></div>
+
+      <div class="card" id="formCalificar">
+        <label for="calificacionTexto">Calificación de Texto (0 a 10)</label>
+        <input type="number" id="calificacionTexto" min="0" max="10" placeholder="Ej. 8" required>
+        <label for="calificacionImagen">Calificación de Imagen (0 a 10)</label>
+        <input type="number" id="calificacionImagen" min="0" max="10" placeholder="Ej. 8" required>
+        <button id="btnCalificar" disabled>Enviar calificación</button>
+      </div>
+    </div>
+
+    <div id="columnaCostos">
+      <details id="panelCostos">
+        <summary>La generación de esta imagen costó<br><span class="costo-grande" id="costoTotalNumero"></span>
+          <div class="comparacion-costo" id="comparacionCosto"></div>
+        </summary>
+        <div class="desglose">
+          <div class="linea-costo">
+            Copy generado por el agente "Verso":<br><b id="costoVersoNumero"></b>
+            <small id="modeloVersoTexto"></small>
+          </div>
+          <div class="linea-costo">
+            Imagen generada por el agente "Lúmina":<br><b id="costoLuminaNumero"></b>
+            <small id="modeloLuminaTexto"></small>
+          </div>
+          <div class="linea-costo">
+            Composición generada por el agente "Atelier":<br><b id="costoAtelierNumero"></b>
+            <small id="modeloAtelierTexto"></small>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div class="format-row" id="formatsPopup">
+    <button type="button" class="fmt" data-fmt="1x1">1:1</button>
+    <button type="button" class="fmt" data-fmt="16x9">16:9</button>
+    <button type="button" class="fmt" data-fmt="9x16">9:16</button>
+    <button type="button" class="fmt" data-fmt="4x5">4:5</button>
+    <button type="button" class="fmt" data-fmt="3x4">3:4</button>
+    <button type="button" class="fmt" data-fmt="wa">WhatsApp</button>
+  </div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// Datos de conexión — seguros de tener acá: es la "publishable/anon key",
+// pensada para vivir en código de frontend (protegida por RLS, no por
+// mantenerse oculta). Nunca poner acá la service_role key.
+const SUPABASE_URL = 'https://hngerqczhaclswpiascp.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_WqcmxO1hTQuyKbIhvqBdzw_wQhxW9TG';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let ESTADO = null;       // fila completa de `generaciones` para la pieza abierta en el popup
+let galeriaItems = [];   // [{id, calificado, composicion_url}] — estado local, se actualiza sin recargar
+
+const inicioEl = document.getElementById('inicio');
+const btnVictor = document.getElementById('btnVictor');
+const btnJulio = document.getElementById('btnJulio');
+const estadoEl = document.getElementById('estado');
+const spinnerEl = document.getElementById('spinner');
+const galeriaEl = document.getElementById('galeria');
+const modalPieza = document.getElementById('modalPieza');
+const cerrarModal = document.getElementById('cerrarModal');
+const resultadoEl = document.getElementById('resultado');
+const imgOriginal = document.getElementById('imgOriginal');
+const piezaVivaEl = document.getElementById('piezaViva');
+const formatsPopup = document.getElementById('formatsPopup');
+let formatoActual = '1x1';
+let PIEZA = null; // texto+foto de la generación abierta, para renderPieza()
+const formCalificar = document.getElementById('formCalificar');
+const btnCalificar = document.getElementById('btnCalificar');
+const panelCostos = document.getElementById('panelCostos');
+const columnaCostos = document.getElementById('columnaCostos');
+const inputCalificacionTexto = document.getElementById('calificacionTexto');
+const inputCalificacionImagen = document.getElementById('calificacionImagen');
+
+function usd(n){ return 'US$ ' + (Number(n) || 0).toFixed(4); }
+
+// ===================== Composición en vivo =====================
+// Copiado literal del standalone local (generar.html) — mismo pieceHTML()/
+// renderPieza() que arma el PNG 1x1 de la galería (Playwright, del lado
+// local), ahora también acá en el navegador: texto real del DOM
+// (seleccionable, copiable), no una imagen.
+const YB_MARK = '<svg class="mark" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 4L9 15l-3-3"/><path d="M21 12v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1h11"/></svg>';
+
+function photoImg(src, pos){ return `<img class="piece-img" src="${src}" style="object-position:${pos||'50% 25%'}" alt="" onerror="this.classList.add('img-broken')">`; }
+
+const CLASES_FORMATO = {
+  '1x1':'piece-1x1', '9x16':'piece-9x16', '16x9':'piece-16x9', '4x5':'piece-4x5', '3x4':'piece-3x4',
+  'wa':'piece-wa',
+};
+// 2 fotos reales por pieza: `16x9` usa la propia foto 16:9; los otros 5
+// formatos (incluido `1x1` de la galería) se recortan vía CSS de la foto 4:5.
+function fotoParaFormato(sc, fmt){
+  return fmt === '16x9' ? sc.photoSrc16x9 : sc.photoSrc4x5;
+}
+function pieceHTML(sc, fmt){
+  const cls = CLASES_FORMATO[fmt] || 'piece-1x1';
+  const foto = fotoParaFormato(sc, fmt);
+  const inner = `
+    <div class="piece ${cls}">
+      <div class="piece-photo">${foto ? photoImg(foto, sc.photoPos) : ''}</div>
+      <div class="piece-shade shade-${sc.shade||'medium'}"></div>
+      <div class="piece-content">
+        <div class="piece-logo">${YB_MARK}<span class="wm">YANBAL</span></div>
+        <div class="piece-bottom">
+          <div class="piece-head">${(sc.head||'').replace(/\n/g,'<br>')}</div>
+          <div class="piece-sub">${sc.sub||''}</div>
+          <span class="piece-cta">${sc.cta||''}</span>
+        </div>
+      </div>
+    </div>`;
+  if (fmt === 'wa') {
+    return `<div class="wa-frame">
+      <div class="wa-top"><div class="wa-ph">${YB_MARK}</div><div><b>Yanbal · Tu Consultora</b><small>en línea</small></div></div>
+      <div class="wa-body">
+        <div class="wa-bubble">${inner}
+          <div class="wa-caption">${sc.wa||''} <span class="wlink">yanbal.com/pe</span></div>
+        </div>
+        <div class="wa-time">9:41 ✓✓</div>
+      </div>
+    </div>`;
+  }
+  return inner;
+}
+function renderPieza(piece, fmt){
+  piezaVivaEl.innerHTML = pieceHTML(piece, fmt);
+}
+
+// Quita solo el prefijo del proveedor de cada modelo, para las comparativas.
+function sinProveedor(texto){
+  return texto.split(' + ').map(p => p.replace(/^[^/]+\//, '')).join(' + ');
+}
+
+function esValida0a10(valorTexto){
+  const v = parseInt(valorTexto, 10);
+  return !isNaN(v) && v >= 0 && v <= 10;
+}
+
+function actualizarBotonCalificar(){
+  btnCalificar.disabled = !(esValida0a10(inputCalificacionTexto.value)
+                          && esValida0a10(inputCalificacionImagen.value));
+}
+inputCalificacionTexto.addEventListener('input', actualizarBotonCalificar);
+inputCalificacionImagen.addEventListener('input', actualizarBotonCalificar);
+
+// ---------------------------------------------------------------- galería
+// 2 sujetos de prueba sobre el MISMO set de 96 piezas, duplicado en la tabla
+// con id+96: Victor califica 1-96, Julio 97-192 — cada uno su propia mitad,
+// nunca se pisan la calificación del otro.
+async function cargarGaleria(desde, hasta){
+  btnVictor.disabled = true;
+  btnJulio.disabled = true;
+  estadoEl.textContent = 'Cargando galería…';
+  spinnerEl.style.display = 'block';
+  const { data, error } = await db
+    .from('generaciones')
+    .select('id, calificacion_texto, calificacion_imagen, composicion_url')
+    .gte('id', desde).lte('id', hasta)
+    .order('id', { ascending: true });
+  spinnerEl.style.display = 'none';
+  if (error) {
+    estadoEl.textContent = 'Error: ' + error.message;
+    btnVictor.disabled = false;
+    btnJulio.disabled = false;
+    return;
+  }
+  galeriaItems = data.map(r => ({
+    id: r.id,
+    calificado: r.calificacion_texto !== null && r.calificacion_imagen !== null,
+    composicion_url: r.composicion_url,
+  }));
+  estadoEl.textContent = '';
+  inicioEl.style.display = 'none';
+  renderizarGaleria();
+  galeriaEl.style.display = 'grid';
+}
+btnVictor.addEventListener('click', () => cargarGaleria(1, 96));
+btnJulio.addEventListener('click', () => cargarGaleria(97, 192));
+
+function renderizarGaleria(){
+  galeriaEl.innerHTML = '';
+  galeriaItems.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'miniatura';
+    div.innerHTML = '<img src="' + item.composicion_url + '" alt="Composición ' + item.id + '">'
+      + (item.calificado ? '<div class="check">✓</div>' : '');
+    div.addEventListener('click', () => abrirPopup(item.id));
+    galeriaEl.appendChild(div);
+  });
+}
+
+// Selector de formato del popup — mismo texto+foto siempre (`PIEZA`, cargado
+// una vez al abrir), solo cambia la plantilla con la que se arma #piezaViva.
+// Nunca vuelve a consultar la base, es un `renderPieza()` puro del navegador.
+function actualizarBotonesFormato(){
+  formatsPopup.querySelectorAll('.fmt').forEach(b => b.classList.toggle('active', b.dataset.fmt === formatoActual));
+}
+function medirTamanoPieza(piece, fmt){
+  const medidor = document.createElement('div');
+  medidor.id = 'piezaViva';
+  medidor.style.cssText = 'position:absolute; visibility:hidden; left:-9999px; top:0;';
+  document.body.appendChild(medidor);
+  medidor.innerHTML = pieceHTML(piece, fmt);
+  const nodo = medidor.querySelector('.piece, .wa-frame');
+  const rect = nodo.getBoundingClientRect();
+  document.body.removeChild(medidor);
+  return { width: rect.width, height: rect.height };
+}
+function cambiarFormatoConTransicion(fmt){
+  const piezaAnterior = piezaVivaEl.querySelector('.piece, .wa-frame');
+  const rectAntes = piezaAnterior ? piezaAnterior.getBoundingClientRect() : null;
+  if (!rectAntes) { renderPieza(PIEZA, fmt); return; }
+
+  const tamanoDestino = medirTamanoPieza(PIEZA, fmt);
+  renderPieza(PIEZA, fmt);
+  const piezaNueva = piezaVivaEl.querySelector('.piece, .wa-frame');
+
+  piezaNueva.style.width = rectAntes.width + 'px';
+  piezaNueva.style.height = rectAntes.height + 'px';
+  void piezaNueva.offsetHeight;
+  requestAnimationFrame(() => {
+    piezaNueva.style.width = tamanoDestino.width + 'px';
+    piezaNueva.style.height = tamanoDestino.height + 'px';
+  });
+  setTimeout(() => {
+    piezaNueva.style.width = '';
+    piezaNueva.style.height = '';
+  }, 225);
+}
+
+// #imgOriginal (la foto sin componer, visible solo antes de calificar) sigue
+// al formato elegido: la 16:9 muestra su propia foto original; cualquier
+// otro formato muestra la 4:5 (la fuente real de la que se recorta).
+function actualizarImgOriginal(){
+  if (!PIEZA) return;
+  imgOriginal.src = formatoActual === '16x9' ? PIEZA.photoSrc16x9 : PIEZA.photoSrc4x5;
+}
+
+formatsPopup.addEventListener('click', (e) => {
+  const b = e.target.closest('.fmt'); if (!b) return;
+  formatoActual = b.dataset.fmt;
+  actualizarBotonesFormato();
+  actualizarImgOriginal();
+  if (PIEZA) cambiarFormatoConTransicion(formatoActual);
+});
+
+// Comparación histórica ("fue la más cara/barata") contra TODO el set —
+// equivalente a `_comparacion_historica()` del standalone local, ahora en
+// JS: lee la vista `comparacion_modelos` (proyección liviana de columnas).
+function textoModelos(verso, lumina, atelier){
+  let s = verso + ' + ' + lumina;
+  if (atelier !== verso) s += ' + ' + atelier;
+  return s;
+}
+async function calcularComparacionHistorica(costoActual){
+  const { data, error } = await db.from('comparacion_modelos')
+    .select('costo_total, modelo_verso, modelo_lumina, modelo_atelier');
+  if (error || !data || data.length <= 1) return null;
+
+  let filaCara = data[0], filaBarata = data[0];
+  for (const r of data) {
+    if (r.costo_total > filaCara.costo_total) filaCara = r;
+    if (r.costo_total < filaBarata.costo_total) filaBarata = r;
+  }
+  const vsCara = costoActual >= filaCara.costo_total
+    ? { especial: true }
+    : {
+        especial: false,
+        porcentaje: Math.round((filaCara.costo_total - costoActual) / filaCara.costo_total * 10000) / 100,
+        costo: filaCara.costo_total,
+        modelos: textoModelos(filaCara.modelo_verso, filaCara.modelo_lumina, filaCara.modelo_atelier),
+      };
+  const vsBarata = costoActual <= filaBarata.costo_total
+    ? { especial: true }
+    : {
+        especial: false,
+        porcentaje: Math.round((costoActual - filaBarata.costo_total) / filaBarata.costo_total * 10000) / 100,
+        costo: filaBarata.costo_total,
+        modelos: textoModelos(filaBarata.modelo_verso, filaBarata.modelo_lumina, filaBarata.modelo_atelier),
+      };
+  return { vs_cara: vsCara, vs_barata: vsBarata };
+}
+
+// ---------------------------------------------------------------- popup
+async function abrirPopup(id){
+  const { data, error } = await db.from('generaciones').select('*').eq('id', id).single();
+  if (error || !data) {
+    alert('Error: ' + (error ? error.message : 'no se pudo abrir esta generación'));
+    return;
+  }
+  ESTADO = data;
+  PIEZA = Object.assign({}, data.pieza, {
+    photoSrc4x5: data.foto_4x5_url,
+    photoSrc16x9: data.foto_16x9_url,
+  });
+  formatoActual = '1x1';
+  actualizarImgOriginal();
+  actualizarBotonesFormato();
+  renderPieza(PIEZA, formatoActual);
+
+  // Estado inicial del popup: sin clase "calificado", form visible y vacío.
+  resultadoEl.classList.remove('calificado');
+  formCalificar.style.display = '';
+  formCalificar.classList.remove('desvaneciendo');
+  inputCalificacionTexto.value = '';
+  inputCalificacionImagen.value = '';
+  btnCalificar.disabled = true;
+  btnCalificar.textContent = 'Enviar calificación';
+  panelCostos.open = false;
+  columnaCostos.classList.remove('contenido-listo');
+  document.getElementById('comparacionCosto').innerHTML = '';
+  document.getElementById('costoTotalNumero').textContent = '';
+  document.getElementById('costoVersoNumero').textContent = '';
+  document.getElementById('modeloVersoTexto').textContent = '';
+  document.getElementById('costoLuminaNumero').textContent = '';
+  document.getElementById('modeloLuminaTexto').textContent = '';
+  document.getElementById('costoAtelierNumero').textContent = '';
+  document.getElementById('modeloAtelierTexto').textContent = '';
+
+  const calificado = data.calificacion_texto !== null && data.calificacion_imagen !== null;
+  if (calificado) {
+    const comparacion = await calcularComparacionHistorica(data.costo_total);
+    mostrarResultados(comparacion, costosDeFila(data), modelosDeFila(data), false);
+  }
+
+  modalPieza.showModal();
+}
+
+function costosDeFila(fila){
+  return {
+    verso: fila.costo_verso, atelier: fila.costo_atelier,
+    lumina: fila.costo_lumina_4x5 + fila.costo_lumina_16x9, total: fila.costo_total,
+  };
+}
+function modelosDeFila(fila){
+  return { verso: fila.modelo_verso, atelier: fila.modelo_atelier, lumina: fila.modelo_lumina };
+}
+
+cerrarModal.addEventListener('click', () => modalPieza.close());
+
+modalPieza.addEventListener('click', (e) => {
+  if (e.target === modalPieza) modalPieza.close();
+});
+
+function animarAltoPopup(aplicarCambio){
+  const alturaAntes = modalPieza.getBoundingClientRect().height;
+  aplicarCambio();
+  const alturaDespues = modalPieza.getBoundingClientRect().height;
+  if (Math.abs(alturaDespues - alturaAntes) < 1) return;
+  modalPieza.style.height = alturaAntes + 'px';
+  modalPieza.style.overflow = 'hidden';
+  void modalPieza.offsetHeight;
+  requestAnimationFrame(() => {
+    modalPieza.style.height = alturaDespues + 'px';
+  });
+  setTimeout(() => {
+    modalPieza.style.height = '';
+    modalPieza.style.overflow = '';
+  }, 225);
+}
+
+function mostrarResultados(comparacion, costos, modelos, retrasarPanel){
+  formCalificar.style.display = 'none';
+
+  function poblarContenido(){
+    document.getElementById('costoTotalNumero').textContent = usd(costos.total);
+    document.getElementById('costoVersoNumero').textContent = usd(costos.verso);
+    document.getElementById('modeloVersoTexto').innerHTML = 'Hecho con <b>' + modelos.verso + '</b>';
+    document.getElementById('costoLuminaNumero').textContent = usd(costos.lumina);
+    document.getElementById('modeloLuminaTexto').innerHTML = 'Hecho con <b>' + modelos.lumina + '</b>';
+    document.getElementById('costoAtelierNumero').textContent = usd(costos.atelier);
+    document.getElementById('modeloAtelierTexto').innerHTML = 'Hecho con <b>' + modelos.atelier + '</b>';
+
+    const comparacionEl = document.getElementById('comparacionCosto');
+    if (comparacion) {
+      const vsCara = comparacion.vs_cara;
+      const vsBarata = comparacion.vs_barata;
+      const lineaCara = vsCara.especial
+        ? '<span class="rojo">Esta fue la generación más costosa</span>'
+        : '<span class="blanco">' + vsCara.porcentaje + '%</span> más barato que ' + sinProveedor(vsCara.modelos)
+          + ': <span class="rojo">' + usd(vsCara.costo) + '</span> <span class="blanco">(La más Costosa)</span>';
+      const lineaBarata = vsBarata.especial
+        ? '<span class="verde">Esta fue la generación más económica</span>'
+        : '<span class="blanco">' + vsBarata.porcentaje + '%</span> más caro que ' + sinProveedor(vsBarata.modelos)
+          + ': <span class="verde">' + usd(vsBarata.costo) + '</span> <span class="blanco">(La más Económica)</span>';
+      comparacionEl.innerHTML = '<div>' + lineaCara + '</div><div>' + lineaBarata + '</div>';
+    } else {
+      comparacionEl.innerHTML = '';
+    }
+    panelCostos.open = true;
+    columnaCostos.classList.add('contenido-listo');
+  }
+
+  resultadoEl.classList.add('calificado');
+  if (retrasarPanel) {
+    setTimeout(() => animarAltoPopup(poblarContenido), 325);
+  } else {
+    poblarContenido();
+  }
+}
+
+function animarHaciaResultados(comparacion, costos, modelos){
+  formCalificar.classList.add('desvaneciendo');
+  setTimeout(() => mostrarResultados(comparacion, costos, modelos, true), 100);
+}
+
+const summaryCostos = panelCostos.querySelector('summary');
+summaryCostos.addEventListener('click', (e) => {
+  e.preventDefault();
+  animarAltoPopup(() => { panelCostos.open = !panelCostos.open; });
+});
+
+btnCalificar.addEventListener('click', async () => {
+  const calificacionTexto = parseInt(inputCalificacionTexto.value, 10);
+  const calificacionImagen = parseInt(inputCalificacionImagen.value, 10);
+  if (!esValida0a10(inputCalificacionTexto.value) || !esValida0a10(inputCalificacionImagen.value)) {
+    return;
+  }
+  btnCalificar.disabled = true;
+  btnCalificar.textContent = 'Enviando…';
+
+  // Única forma de escribir: la función `calificar_pieza()` (ver
+  // supabase/schema.sql) — nunca un UPDATE directo a la tabla.
+  const { error } = await db.rpc('calificar_pieza', {
+    p_id: ESTADO.id,
+    p_calificacion_texto: calificacionTexto,
+    p_calificacion_imagen: calificacionImagen,
+  });
+  if (error) {
+    alert('Error: ' + error.message);
+    btnCalificar.disabled = false;
+    btnCalificar.textContent = 'Enviar calificación';
+    return;
+  }
+
+  const comparacion = await calcularComparacionHistorica(ESTADO.costo_total);
+  animarHaciaResultados(comparacion, costosDeFila(ESTADO), modelosDeFila(ESTADO));
+
+  // Refleja el check verde en la galería sin recargar la página.
+  const item = galeriaItems.find(x => x.id === ESTADO.id);
+  if (item) item.calificado = true;
+  renderizarGaleria();
+});
+</script>
+</body>
+</html>
