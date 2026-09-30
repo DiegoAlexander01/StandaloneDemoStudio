@@ -236,11 +236,18 @@ h1{font-size:1.3em; margin:0 0 4px; font-weight:600;}
   #modalPieza{width:min(94vw, 420px);}
 
   #resultado{flex-direction:column; align-items:center; order:0; padding:8px 14px 40px;}
-  #columnaImagen{flex-direction:column; align-items:center; max-width:100%;}
+  #columnaImagen{flex-direction:column; align-items:center; max-width:100%; gap:22px;}
   .card{max-width:100%;}
   #columnaCostos{width:100%; max-width:100%; margin-left:0;}
   #resultado.calificado #columnaCostos{margin-left:0; order:-1;}
   #resultado.calificado #columnaImagen{margin-top:22px;}
+
+  /* La foto original (antes de calificar) ocupaba casi toda la pantalla —
+     se achica a un tamaño cercano al de la composición de abajo (~212px,
+     ver #piezaViva .piece-1x1 más abajo), y el `gap` de arriba separa los
+     3 elementos de esta pantalla (foto, composición, form) entre sí. No
+     afecta la pantalla de resultados: ahí `#imgOriginal` sigue oculto. */
+  #imgOriginal{max-width:220px;}
 
   /* Reordena el popup SOLO en celular (ver memory.md §25) — el estilo de
      escritorio no se toca (sigue sin `order` ni flex-column acá fuera de
