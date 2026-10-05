@@ -67,6 +67,11 @@ h1{font-size:1.3em; margin:0 0 4px; font-weight:600;}
   background:var(--verde); color:#fff; font-size:.85em; font-weight:700;
   display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4);
 }
+.miniatura .id-badge{
+  position:absolute; right:6px; top:6px; min-width:22px; height:22px; padding:0 5px;
+  border-radius:999px; background:rgba(0,0,0,.6); color:#fff; font-size:.72em; font-weight:700;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
 
 /* ---------------------------------------------------------------- popup (dialog nativo) */
 #modalPieza{
@@ -515,6 +520,7 @@ function renderizarGaleria(){
     const div = document.createElement('div');
     div.className = 'miniatura';
     div.innerHTML = '<img src="' + item.composicion_url + '" alt="Composición ' + item.id + '">'
+      + '<div class="id-badge">' + item.id + '</div>'
       + (item.calificado ? '<div class="check">✓</div>' : '');
     div.addEventListener('click', () => abrirPopup(item.id));
     galeriaEl.appendChild(div);
