@@ -319,8 +319,14 @@ h1{font-size:1.3em; margin:0 0 4px; font-weight:600;}
 
 <div id="inicio">
   <div id="filaBotonesSujetos">
-    <button id="btnVictor" class="btn-sujeto">Calificar Imágenes - Victor</button>
-    <button id="btnJulio" class="btn-sujeto">Calificar Imágenes - Julio</button>
+    <button class="btn-sujeto" data-desde="1" data-hasta="96">Calificar Imágenes - Victor</button>
+    <button class="btn-sujeto" data-desde="97" data-hasta="192">Calificar Imágenes - Julio</button>
+    <button class="btn-sujeto" data-desde="193" data-hasta="224">Calificar Imágenes - Nuria</button>
+    <button class="btn-sujeto" data-desde="225" data-hasta="256">Calificar Imágenes - Diana</button>
+    <button class="btn-sujeto" data-desde="257" data-hasta="288">Calificar Imágenes - Kiomi</button>
+    <button class="btn-sujeto" data-desde="289" data-hasta="320">Calificar Imágenes - David</button>
+    <button class="btn-sujeto" data-desde="321" data-hasta="352">Calificar Imágenes - Cielo</button>
+    <button class="btn-sujeto" data-desde="353" data-hasta="384">Calificar Imágenes - Paty</button>
   </div>
 </div>
 <div class="spinner" id="spinner"></div>
@@ -390,8 +396,7 @@ let ESTADO = null;       // fila completa de `generaciones` para la pieza abiert
 let galeriaItems = [];   // [{id, calificado, composicion_url}] — estado local, se actualiza sin recargar
 
 const inicioEl = document.getElementById('inicio');
-const btnVictor = document.getElementById('btnVictor');
-const btnJulio = document.getElementById('btnJulio');
+const botonesSujetos = document.querySelectorAll('.btn-sujeto');
 const estadoEl = document.getElementById('estado');
 const spinnerEl = document.getElementById('spinner');
 const galeriaEl = document.getElementById('galeria');
@@ -481,12 +486,14 @@ inputCalificacionTexto.addEventListener('input', actualizarBotonCalificar);
 inputCalificacionImagen.addEventListener('input', actualizarBotonCalificar);
 
 // ---------------------------------------------------------------- galería
-// 2 sujetos de prueba sobre el MISMO set de 96 piezas, duplicado en la tabla
-// con id+96: Victor califica 1-96, Julio 97-192 — cada uno su propia mitad,
-// nunca se pisan la calificación del otro.
+// Cada sujeto de prueba tiene su propio rango de `id` fijo en la tabla
+// (ver `data-desde`/`data-hasta` de cada botón) — Victor y Julio sobre el
+// set completo de 96 piezas (ids 1-192, duplicado con id+96); los 6
+// sujetos de la fase 2 sobre el set recortado de 32 piezas que sobrevivió
+// al descarte de modelos (ids 193-384, 32 cada uno). Nunca se pisan la
+// calificación entre sí, cada rango es una franja de filas distinta.
 async function cargarGaleria(desde, hasta){
-  btnVictor.disabled = true;
-  btnJulio.disabled = true;
+  botonesSujetos.forEach(b => b.disabled = true);
   estadoEl.textContent = 'Cargando galería…';
   spinnerEl.style.display = 'block';
   const { data, error } = await db
@@ -497,8 +504,7 @@ async function cargarGaleria(desde, hasta){
   spinnerEl.style.display = 'none';
   if (error) {
     estadoEl.textContent = 'Error: ' + error.message;
-    btnVictor.disabled = false;
-    btnJulio.disabled = false;
+    botonesSujetos.forEach(b => b.disabled = false);
     return;
   }
   galeriaItems = data.map(r => ({
@@ -511,8 +517,9 @@ async function cargarGaleria(desde, hasta){
   renderizarGaleria();
   galeriaEl.style.display = 'grid';
 }
-btnVictor.addEventListener('click', () => cargarGaleria(1, 96));
-btnJulio.addEventListener('click', () => cargarGaleria(97, 192));
+botonesSujetos.forEach(b => {
+  b.addEventListener('click', () => cargarGaleria(Number(b.dataset.desde), Number(b.dataset.hasta)));
+});
 
 function renderizarGaleria(){
   galeriaEl.innerHTML = '';
